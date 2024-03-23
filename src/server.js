@@ -14,10 +14,12 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/tasks") {
     const { title, description } = request.body;
 
-    console.log(request.body);
+    if (!title) {
+      return response.writeHead(400).end("O campo title é obrigatório")
+    }
 
-    if (!title || !description) {
-      throw new Error("Preencha todos os campos para criar uma nova tarefa");
+    if (!description) {
+      return response.writeHead(400).end("O campo description é obrigatório")
     }
 
     tasks.push({
