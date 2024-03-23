@@ -1,40 +1,30 @@
-import http from "node:http";
-import { randomUUID } from "node:crypto";
-import { json } from "./middlewares/json.js";
+import http from 'node:http'
 
-const tasks = [];
+import { json } from './middlewares/json.js'
+import { routes } from './routes.js'
+import { extractQueryParams } from './utils/extract-query-params.js'
 
-const server = http.createServer(async (request, response) => {
-  await json(request, response);
+const server = http.createServer(async (req, res) => {
+  const { method, url } = req
 
-  if (request.method === "GET" && request.url === "/tasks") {
-    return response.writeHead(200).end(JSON.stringify(tasks));
+  await json(req, res)
+
+  const route = routes.find(route => {
+    return route.method === method && route.path.test(url)
+  })
+
+  if (route) {
+    const routeParams = req.url.match(route.path)
+
+    const { query, ...params } = routeParams.groups
+
+    req.params = params
+    req.query = query ? extractQueryParams(query) : {}
+
+    return route.handler(req, res)
   }
 
-  if (request.method === "POST" && request.url === "/tasks") {
-    const { title, description } = request.body;
+  return res.writeHead(404).end()
+})
 
-    if (!title) {
-      return response.writeHead(400).end("O campo title é obrigatório")
-    }
-
-    if (!description) {
-      return response.writeHead(400).end("O campo description é obrigatório")
-    }
-
-    tasks.push({
-      id: randomUUID(),
-      title,
-      description,
-      completed_at: null,
-      created_at: Date.now(),
-      updated_at: Date.now(),
-    });
-
-    return response.writeHead(201).end();
-  }
-
-  return response.end("Hello World");
-});
-
-server.listen(3333);
+server.listen(3333)
