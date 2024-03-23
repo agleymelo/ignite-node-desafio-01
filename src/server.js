@@ -14,7 +14,7 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/tasks") {
     const { title, description } = request.body;
 
-    if (title || description) {
+    if (!title || !description) {
       throw new Error("Preencha todos os campos para criar uma nova tarefa");
     }
 
