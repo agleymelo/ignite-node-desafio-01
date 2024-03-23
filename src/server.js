@@ -1,22 +1,11 @@
 import http from "node:http";
 import { randomUUID } from "node:crypto";
+import { json } from "./middlewares/json.js";
 
 const tasks = [];
 
 const server = http.createServer(async (request, response) => {
-  const buffers = [];
-
-  for await (const chunk of buffers) {
-    buffers.push(chunk);
-  }
-
-  try {
-    request.body = JSON.parse(Buffer.concat(buffers).toString());
-  } catch {
-    request.body = null;
-  }
-
-  response.setHeader("Content-Type", "application/json");
+  await json(request, response);
 
   if (request.method === "GET" && request.url === "/tasks") {
     return response.writeHead(200).end(JSON.stringify(tasks));
